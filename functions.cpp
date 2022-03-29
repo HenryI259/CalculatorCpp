@@ -214,6 +214,6 @@ long double ln(double x) {
 }
 
 int main() {
-	printf("%f", ln(2));
+	printf("%f", ln(3));
 	return 0;
 }
