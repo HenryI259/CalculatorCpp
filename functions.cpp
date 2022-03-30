@@ -2,25 +2,42 @@
 
 const int TRIGPRECISION = 15;
 const int LOGPRECISION = 27;
+const int ARCTANPRECISION = 100;
+const int SQRTPRECISION = 10;
+
+long double factorial(int x) {
+	long double result = 1;
+	for (int i = 1; i <= x; i++) {
+		result += i;
+	}
+	return result;
+}
 
 long double exp(double x, int power) {
 	long double result = 1;
 	bool sign = power > 0;
-	int pow = power * ((int)!sign * -1);
+	int pow = power * (((int)!sign * -2) + 1);
 	for (int i = 0; i < pow; i++) {
-		result *= x;
+		result *= x;	
 	}
 	return sign ? result : 1.0 / result;
 }
 
 long double root(double x) {
-	return exp(x, 0.5);
+	long double result = 0;
+	for (int i = 0; i < SQRTPRECISION; i++) {
+		result = exp(x - 1, i) / factorial(i);
+	}
+	return result;
 }
 
-long double root(double x, double root) {
-	return exp(x, 1.0 / root);
+long double arctan(double x) {
+	long double result = 0;
+	for (int i = 0; i < ARCTANPRECISION; i++) {
+		result += exp(2, 2 * i) * exp(factorial(i), 2) / factorial(2 * i + 1) * exp(x, 2 * i + 1) / exp(1 + exp(x, 2), i + 1);
+	}
+	return result;
 }
-
 
 class Complex {
 public:
@@ -28,6 +45,18 @@ public:
 	Complex(double r = 0, double i = 0) { real = r; imag = i; };
 
 	double radius() { return root(exp(real, 2) + exp(imag, 2)); }
+
+	double angle() {
+		if (real == 0) {
+			return imag > 0 ? 1.57 : (imag < 0 ? -1.57 : 0);
+		}
+		else if (real > 0) {
+			return arctan(imag / real);
+		}
+		else {
+			return imag > 0 ? arctan(imag / real) + 3.14 : (imag < 0 ? arctan(imag / real) + 3.14 : 3.14);
+		}
+	}
 
 	void print() {
 		printf("%f + %fi\n", real, imag);
@@ -90,40 +119,18 @@ Complex operator / (const double val, const Complex& c1) {
 	return Complex(r, i);
 }
 
-long double exp(double x, double power) {
-	return 0;
-}
-
-Complex exp(Complex x, double power) {
-	return Complex(0, 0);
-}
-
-Complex exp(double x, Complex power) {
-	return Complex(0, 0);
-}
-
-Complex exp(Complex x, Complex power) {
-	return Complex(0, 0);
-}
-
-Complex root(Complex x, double root) {
-	return exp(x, 1.0 / root);
-}
-
-Complex root(double x, Complex root) {
-	return exp(x, 1.0 / root);
-}
-
-Complex root(Complex x, Complex root) {
-	return exp(x, 1.0 / root);
-}
-
-long double factorial(int x) {
-	long double result = 1;
-	for (int i = 1; i <= x; i++) {
-		result += i;
+long double ln(double x) {
+	int num = 0;
+	while (x >= 2.71) {
+		x /= 2.71;
+		num++;
 	}
-	return result;
+	double n = 1.0 / (x - 1);
+	long double result = 0;
+	for (int i = 0; i < LOGPRECISION; i++) {
+		result += 2.0 / (((i * 2) + 1) * exp((2 * n) + 1, (i * 2) + 1));
+	}
+	return result + num;
 }
 
 long double sin(double x) {
@@ -158,6 +165,20 @@ long double cot(double x) {
 	return cos(x) / sin(x);
 }
 
+Complex cis(double x) {
+	return Complex(cos(x), sin(x));
+}
+
+Complex exp(Complex x, int power) {
+	Complex result = 1;
+	bool sign = power > 0;
+	int pow = power * (((int)!sign * -2) + 1);
+	for (int i = 0; i < pow; i++) {
+		result = result * x;
+	}
+	return sign ? result : 1.0 / result;
+}
+
 Complex sin(Complex x) {
 	Complex result = 0;
 	for (int i = 0; i < TRIGPRECISION; i++) {
@@ -190,30 +211,59 @@ Complex cot(Complex x) {
 	return cos(x) / sin(x);
 }
 
-Complex cis(double x) {
-	return Complex(cos(x), sin(x));
+Complex ln(Complex x) {
+	int num = 0;
+	long double radius = x.radius();
+	while (radius >= 2.71) {
+		radius /= 2.71;
+		num++;
+	}
+	double n = 1.0 / (radius - 1);
+	long double result = 0;
+	for (int i = 0; i < LOGPRECISION; i++) {
+		result += 2.0 / (((i * 2) + 1) * exp((2 * n) + 1, (i * 2) + 1));
+	}
+	return Complex(result + num, x.angle());
 }
+
 
 Complex cis(Complex x) {
 	return cos(x) + (Complex(0, 1) * sin(x));
 }
 
-long double ln(double x) {
-	int num = 0;
-	while (x >= 2.71) {
-		x /= 2.71;
-		num++;
-	}
-	double n = 1.0 / (x - 1);
-	printf("%f", n);
-	double result = 0;
-	for (int i = 0; i < LOGPRECISION; i++) {
-		result += 2.0 / ((i * 2) + 1) * exp((2 * n) + 1, ((i * 2) + 1));
-	}
-	return result + num;
+long double exp(double x, double power) {
+	return cis(Complex(0, -1) * power * ln(x)).real;
+}
+
+long double root(double x, double root) {
+	return exp(x, 1.0 / root);
+}
+
+Complex exp(Complex x, double power) {
+	return cis(Complex(0, -1) * power * ln(x));
+}
+
+Complex exp(double x, Complex power) {
+	return exp(x, power.real) * cis(power.imag * ln(x));
+}
+
+Complex exp(Complex x, Complex power) {
+	return exp(x, power.real) * cis(power.imag * ln(x));
+}
+
+Complex root(Complex x, double root) {
+	return exp(x, 1.0 / root);
+}
+
+Complex root(double x, Complex root) {
+	return exp(x, 1.0 / root);
+}
+
+Complex root(Complex x, Complex root) {
+	return exp(x, 1.0 / root);
 }
 
 int main() {
-	printf("%f", ln(3));
+	printf("%Lf", root(4));
 	return 0;
 }
