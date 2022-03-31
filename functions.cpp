@@ -5,6 +5,7 @@ const int LOGPRECISION = 27;
 const int ARCTANPRECISION = 80;
 const int SQRTPRECISION = 100;
 const int EPRECISION = 26;
+const int INTEGRALPRECISION = 1000;
 
 long double factorial(int x) {
 	long double result = 1;
@@ -199,6 +200,9 @@ Complex neglog(long double x, long double base){
 
 long double sin(long double x) {
 	long double result = 0;
+	while (x > 2 * PI) {
+		x -= 2 * PI;
+	}
 	for (int i = 0; i < TRIGPRECISION; i++) {
 		result += exp(-1, i) * exp(x, (2 * i) + 1) / factorial((2 * i) + 1);
 	}
@@ -207,6 +211,9 @@ long double sin(long double x) {
 
 long double cos(long double x) {
 	long double result = 0;
+	while (x > 2 * PI) {
+		x -= 2 * PI;
+	}
 	for (int i = 0; i < TRIGPRECISION; i++) {
 		result += exp(-1, i) * exp(x, 2 * i) / factorial(2 * i);
 	}
@@ -358,8 +365,22 @@ Complex arccos(Complex x){
   return PI/2 + (Complex(0, 1) * ln(root(1-exp(x, 2), 2) + (Complex(0, 1) * x)));
 }
 
+long double derivative(long double (*func)(long double), long double x) {
+	long double h = 0.00000001;
+	return (func(x + h) - func(x)) / h;
+}
+
+long double defIntegral(long double lower, long double upper, long double (*func)(long double)) {
+	long double result = 0;
+	long double dx = (upper - lower) / INTEGRALPRECISION;
+	for (int i = 0; i < INTEGRALPRECISION; i++) {
+		result = func((i * dx) + lower) * dx;
+	}
+	return result;
+}
+
 int main() {
-	Complex x = arccos(0.5);
+	Complex x = defIntegral(0, E, &ln);
 	x.print();
 	return 0;
 }
