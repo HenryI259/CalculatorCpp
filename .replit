@@ -1,0 +1,2 @@
+language = "cpp"
+run = "g++ functions.cpp -o functions && ./functions"
