@@ -2,7 +2,7 @@
 
 const int TRIGPRECISION = 15;
 const int LOGPRECISION = 27;
-const int ARCTANPRECISION = 100;
+const int ARCTANPRECISION = 80;
 const int SQRTPRECISION = 100;
 const int EPRECISION = 26;
 
@@ -25,20 +25,26 @@ long double exp(long double x, int power) {
 }
 
 long double root(long double x) {
-  double upper = x;
-  double lower = 0;
-  double middle;
-  for (int i = 0; i < SQRTPRECISION; i++) {
-    middle = (upper + lower) / 2;
-    if (exp(middle, 2) > x) {
-      upper = middle;
+	int d = 1;
+	while (x < 1) {
+		x *= 100;
+		d *= 10;
     }
-    else if (exp(middle, 2) < x) {
-      lower = middle;
+
+    double upper = x;
+    double lower = x > 1 ? 0 : 1;
+    double middle;
+    for (int i = 0; i < SQRTPRECISION; i++) {
+      middle = (upper + lower) / 2;
+      if (exp(middle, 2) > x) {
+        upper = middle;
+      }
+      else if (exp(middle, 2) < x) {
+        lower = middle;
+      }
+      else if (exp(middle, 2) == x) { break; }
     }
-    else if (exp(middle, 2) == x) { break; }
-  }
-  return middle;
+    return middle/d;
 }
 
 long double arctan(long double x) {
@@ -72,8 +78,6 @@ class Complex {
 public:
 	long double real, imag;
 	Complex(long double r = 0, long double i = 0) { real = r; imag = i; }
-
-  //long double get_value() { return real; }
 
 	long double radius() { return root(exp(real, 2) + exp(imag, 2)); }
 
@@ -272,18 +276,12 @@ Complex cot(Complex x) {
 }
 
 Complex ln(Complex x) {
-	int num = 0;
-	long double radius = x.radius();
-	while (radius >= E) {
-		radius /= E;
-		num++;
-	}
-	long double n = 1.0 / (radius - 1);
 	long double result = 0;
-	for (int i = 0; i < LOGPRECISION; i++) {
-		result += 2.0 / (((i * 2) + 1) * exp((2 * n) + 1, (i * 2) + 1));
+	long double radius = x.radius();
+	if (radius != 1) {
+		result = ln(radius);
 	}
-	return Complex(result + num, x.angle());
+	return Complex(result, x.angle());
 }
 
 Complex log(Complex x, long double base){
@@ -299,11 +297,14 @@ Complex cis(Complex x) {
 }
 
 long double exp(long double x, long double power) {
-	if (x < 0) {
+  if (x < 0) {
     return cis(Complex(0, -1) * power * negln(x)).real;
   }
-  else {
+  else if (x > 0) {
     return cis(Complex(0, -1) * power * ln(x)).real;
+  }
+  else {
+	  return power == 0 ? 1 : 0;
   }
 }
 
@@ -312,19 +313,28 @@ long double root(long double x, long double root) {
 }
 
 Complex exp(Complex x, long double power) {
+	if (x.radius() == 0) {
+		return power == 0 ? 1 : 0;
+	}
 	return cis(Complex(0, -1) * power * ln(x));
 }
 
 Complex exp(long double x, Complex power) {
-	if (x < 0) {
-    return exp(x, power.real) * cis(power.imag * negln(x));
-  }
-  else {
-    return exp(x, power.real) * cis(power.imag * ln(x)); 
-  }
+    if (x < 0) {
+      return exp(x, power.real) * cis(power.imag * negln(x));
+    }
+    else if (x > 0) {
+      return exp(x, power.real) * cis(power.imag * ln(x)); 
+    }
+	else {
+	  return power.radius() == 0 ? 1 : 0;
+    }
 }
 
 Complex exp(Complex x, Complex power) {
+	if (x.radius() == 0) {
+		return power.radius() == 0 ? 1 : 0;
+	}
 	return exp(x, power.real) * cis(power.imag * ln(x));
 }
 
@@ -340,25 +350,16 @@ Complex root(Complex x, Complex root) {
 	return exp(x, 1.0 / root);
 }
 
-Complex arcsin(long double x){
-  return Complex(0, -1) * ln(root(1-exp(x, 2))) + (Complex(0, 1) * x);
-}
-
 Complex arcsin(Complex x){
-  return Complex(0, -1) * ln(root(1-exp(x, 2), 2)) + (Complex(0, 1) * x);
-}
-
-Complex arccos(long double x){
-  return PI/2 + (Complex(0, 1) * ln(root(1-exp(x, 2))) + (Complex(0, 1) * x));
+	return Complex(0, -1) * ln(root(1-exp(x, 2), 2) + (Complex(0, 1) * x));
 }
 
 Complex arccos(Complex x){
-  return PI/2 + (Complex(0, 1) * ln(root(1-exp(x, 2), 2)) + (Complex(0, 1) * x));
+  return PI/2 + (Complex(0, 1) * ln(root(1-exp(x, 2), 2) + (Complex(0, 1) * x)));
 }
 
 int main() {
-  printf("%Lf", exp(2.2, 2.3));
+	Complex x = arccos(0.5);
+	x.print();
 	return 0;
 }
-
-// It will look like water
