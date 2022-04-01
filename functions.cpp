@@ -5,7 +5,7 @@ const int LOGPRECISION = 27;
 const int ARCTANPRECISION = 80;
 const int SQRTPRECISION = 100;
 const int EPRECISION = 26;
-const int INTEGRALPRECISION = 1000;
+const int INTEGRALPRECISION = 10000;
 
 long double factorial(int x) {
 	long double result = 1;
@@ -374,13 +374,13 @@ long double defIntegral(long double lower, long double upper, long double (*func
 	long double result = 0;
 	long double dx = (upper - lower) / INTEGRALPRECISION;
 	for (int i = 0; i < INTEGRALPRECISION; i++) {
-		result = func((i * dx) + lower) * dx;
+		result += func((i * dx) + lower) * dx;
 	}
 	return result;
 }
 
 int main() {
-	Complex x = defIntegral(0, E, &ln);
+	Complex x = defIntegral(1, E, &ln);
 	x.print();
 	return 0;
 }
