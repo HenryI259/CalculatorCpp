@@ -1,10 +1,10 @@
 #include <stdio.h>
 
 const int TRIGPRECISION = 15;
-const int LOGPRECISION = 27;
+const int LOGPRECISION = 30;
 const int ARCTANPRECISION = 80;
 const int SQRTPRECISION = 100;
-const int EPRECISION = 26;
+const int EXPPRECISION = 50;
 const int INTEGRALPRECISION = 10000;
 
 long double factorial(int x) {
@@ -60,20 +60,16 @@ long double arctan(long double x) {
 	return result;
 }
 
-long double pi(){
-  return arctan(1) * 4;
-}
-
-long double e(){
+long double eExp(long double x){
   long double result = 0;
-  for (int i = 0; i < EPRECISION; i++){
-    result += 1/factorial(i);
+  for (int i = 0; i < EXPPRECISION; i++){
+    result += x/factorial(i);
   }
   return result;
 }
 
-const long double PI = pi();
-const long double E = e();
+const long double PI = arctan(1) * 4;
+const long double E = eExp(1);
 
 class Complex {
 public:
@@ -153,6 +149,14 @@ Complex operator / (const long double val, const Complex& c1) {
 	long double r = (val * c1.real) / (exp(c1.real, 2) + exp(c1.imag, 2));
 	long double i = -(val * c1.imag) / (exp(c1.real, 2) + exp(c1.imag, 2));
 	return Complex(r, i);
+}
+
+Complex eExp(Complex x){
+  Complex result = 0;
+  for (int i = 0; i < EXPPRECISION; i++){
+    result = result + x/factorial(i);
+  }
+  return result;
 }
 
 long double ln(long double x) {
@@ -237,7 +241,7 @@ long double cot(long double x) {
 }
 
 Complex cis(long double x) {
-	return Complex(cos(x), sin(x));
+	return eExp(Complex(0, x));
 }
 
 Complex exp(Complex x, int power) {
@@ -300,7 +304,7 @@ Complex log(Complex x, Complex base){
 }
 
 Complex cis(Complex x) {
-	return cos(x) + (Complex(0, 1) * sin(x));
+	return eExp(Complex(-x.imag, x.real));
 }
 
 long double exp(long double x, long double power) {
@@ -380,7 +384,7 @@ long double defIntegral(long double lower, long double upper, long double (*func
 }
 
 int main() {
-	Complex x = defIntegral(1, E, &ln);
+	Complex x = defIntegral(0, PI, &sin);
 	x.print();
 	return 0;
 }
