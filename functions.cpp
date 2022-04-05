@@ -379,8 +379,28 @@ long double defIntegral(long double lower, long double upper, long double (*func
 	return result;
 }
 
+long double partialDerivative(long double (*func)(long double, long double), long double varibles[], int rvar) {
+	long double h = 0.00000001;
+	const int size = sizeof(varibles);
+	long double newVars[size];
+	for (int i = 0; i < size; i++) {
+		if (i == rvar) {
+			newVars[i] = varibles[i] + h;
+		}
+		else {
+			newVars[i] = varibles[i];
+		}
+	}
+	return (func(newVars[0], newVars[1]) - func(varibles[0], varibles[1])) / h;
+}
+
+long double func(long double x, long double z) {
+	return sin(x) + cos(z);
+}
+
 int main() {
-	Complex x = defIntegral(1, E, &ln);
+	long double vars[2] = { 0, PI/2 };
+	Complex x = partialDerivative(&func, vars, 0);
 	x.print();
 	return 0;
 }
